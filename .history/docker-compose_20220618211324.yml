@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+    php:
+      volumes:
+      - ./app/public:/var/www/html
+      image: php:8.0-apache
+      ports:
+      - 8081:81
+
+    mysql:
+      volumes:
+      ports:
+      - 3306:3306
+      name:
+      - mysql_local
+      environment:
+        MYSQL_ROOT_PASSWORD: "MySql2019!"
+        MYSQL_DATABASE: "testedb"
+
+      image: mysql:8.0
+
+
+
+
+      mysqlsrv:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: "MySql2019!"
+      MYSQL_DATABASE: "testedb"
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./app/src/:/var/lib/mysql
+    networks:
+      - mysql-compose-network
+

@@ -1,0 +1,81 @@
+version: "3"
+
+services:
+  php:
+    volumes:
+    - ./app/public:/var/www/html
+    image: php:8.0-apache
+    ports:
+    - 8081:81
+
+  php:
+    build:
+      context: ./docker/php
+    env_file:
+      - .env
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+      - .:/var/www
+    networks:
+      dev-network:
+        ipv4_address: ${IP_RANGE}.2
+
+  nginx:
+    build:
+      context: ./docker/nginx
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/log:/var/log/nginx
+      - ./public:/var/www/public
+      - ./certs:/var/www/certs
+    networks:
+      dev-network:
+        ipv4_address: ${IP_RANGE}.3
+
+  mysql:
+    build:
+      context: ./docker/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    ports:
+      - 3306:3306
+    volumes:
+      - ./docker/mysql/custom.cnf:/etc/mysql/conf.d/custom.cnf
+    networks:
+      dev-network:
+        ipv4_address: ${IP_RANGE}.4
+  mailhog:
+    image: mailhog/mailhog:v1.0.0
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      dev-network:
+        ipv4_address: ${IP_RANGE}.5
+  wordmove:
+    build:
+      context: ./docker/wordmove
+    tty: true
+    volumes:
+      - ./wordmove:/wordmove
+      - ./public:/var/www/public
+      - ~/.ssh:/tmp/.ssh:ro
+    networks:
+      dev-network:
+        ipv4_address: ${IP_RANGE}.6
+networks:
+  dev-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${IP_RANGE}.0/16
+          gateway: ${IP_RANGE}.1
