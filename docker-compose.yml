@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+    php:
+      volumes:
+      - ./app/public:/var/www/html
+      image: php:8.0-apache
+      ports:
+      - 8081:81
